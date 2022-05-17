@@ -1,0 +1,133 @@
+---
+title: "Trabajo Foro 3"
+author: "Leonardo Daniel"
+date: "17/5/2022"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 5
+    toc_float:
+      smooth_scroll: yes
+    highlight: zenburn
+    number_sections: yes
+    theme: flatly
+---
+
+# Introducción
+Un psicólogo está interesado en desarrollar un programa para estudiantes universitarios de primera generación.
+A fin de obtener datos de referencia que se puedan utilizar para crear su programa,el psicólogo decide realizar un estudio. Él quiere estudiar el efecto que pueden tener ***la asistencia de los estudiantes  universitarios de primera generación(en dias)***,***número de cursos que llevan***,***tiempo que estudian semanalmente(en horas)*** sobre el ***promedio de notas***.
+
+
+<div style="text-align: center;">  
+![](https://us.123rf.com/450wm/vectorknight/vectorknight1809/vectorknight180900034/110754351-informes-de-seo-monitoreo-de-datos-an%C3%A1lisis-de-tr%C3%A1fico-web-ilustraci%C3%B3n-de-vector-plano-de-big-data-s.jpg?ver=6)
+</div>
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message= FALSE, warning = FALSE)
+```
+
+# Cargamos paquetes
+```{r inicio}
+library(pacman)
+p_load(readxl,dplyr,GGally,kableExtra)
+```
+
+# Lectura de datos
+```{r}
+#Leemos datos
+read_excel('datos_foro3.xlsx') -> datos
+
+#Presentamos datos en una tabla  
+DT::datatable(datos, rownames = F, options = list(pageLength=10))
+```
+
+
+# Variables  
+  
+  
+1. Variables predictoras:
+   + ***Número de cursos que llevan***
+   + ***La asistencia de los estudiantes   universitarios de primera generación(en dias)***
+   + ***Tiempo que estudian   semanalmente(en horas)***  
+   + ***Sexo***
+  
+  
+1. Variable respuesta:
+   + ***Promedio de notas***
+
+# Gráfico por un grupo = Sexo
+```{r}
+library(GGally)
+ggpairs(datos,# Data frame
+        columns = 1:4,        # Columnas
+        aes(color = Sexo,  # Color por grupo (var. categórica)
+            alpha = 0.5))     # Transparencia
+```
+
+
+# Hallando matriz
+## Utilizando fórmula
+
+```{r}
+X <- model.matrix(Promedio ~ 
+                    asistencias_mes + 
+                    número_cursos +
+                    horas_estudio_semana+Sexo,
+                  data = datos)
+y <- matrix(datos$Promedio)
+b <- solve(t(X)%*%X)%*%t(X)%*%y
+b
+```
+
+## Utilizando R
+```{r}
+#Cargamos libreria
+library(broom)
+
+#Definimos modelo
+lm(Promedio ~ ., data = datos) -> modelo
+modelo |> summary()
+```
+Vemos que ya sea por la fórmula o usando R obtenemos los mismo valores por lo tanto:  
+  
+* β<sub>0</sub>=7.6746  
+* β<sub>1</sub>=0.3052  
+* β<sub>2</sub>=-0.2609  
+* β<sub>3</sub>=0.5326  
+* β<sub>4</sub>=0.9689  
+
+# Modelo
+
+<div style="text-align: center;">
+![](modelofinal.png)
+</div>
+
+
+Donde:  
+
+* Y<sub>i</sub>  = Es el promedio de notas de el i-ésimo estudiante.  
+* X<sub>1,i</sub>= Es el número de asistencias de el i-ésimo estudiante.  
+* X<sub>2,i</sub>= Es el número de cursos que esta llevando el i-ésimo estudiante.    
+* X<sub>3,i</sub>= Es el número de horas que estudia por semana el i-ésimo estudiante.  
+* X<sub>4,i</sub>= Es el sexo de el i-ésimo estudiante.  
+
+## Ecuación de Regresión
+
+<div style="text-align: center;"> 
+![](formule2.png)
+</div>
+   
+# Interpretación  
+
+β<sub>0</sub>=7.6746 : Esta interpretación carece de sentido ya que si un alumno no tiene ninguna asistencia a clase no habría rendido ni una práctica por lo que tendría 0 de promedio.  
+
+β<sub>1</sub>=0.3052 : Por cada asistencia adicional de un estudiante, el promedio de notas estimado aumenta en 0.3052 puntos,manteniendo los demás atributos en valores constantes.  
+
+β<sub>2</sub>=-0.2609: Por cada curso adicional que lleve un estudiante, el promedio de notas estimado disminuye en 0.2609 puntos,manteniendo los demás atributos en valores constantes.  
+
+β<sub>3</sub>=0.5326 : Cuando un estudiante estudia una hora más por semana, el promedio de notas estimado aumenta en 0.5326 puntos,manteniendo los demás atributos en valores constantes.  
+
+β<sub>4</sub>=0.9689 : El promedio estimado de los estudiantes hombres (sexo Masculino, codificado como 1) supera en 0.96892 puntos al promedio estimado de las mujeres (sexo Femenino, codificado como 0),manteniendo los demás atributos en valores
+constantes.  
